@@ -1,5 +1,7 @@
 package violanessInvoiceCreator;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -10,7 +12,6 @@ import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.TableCursor;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -42,6 +43,9 @@ public class MainShell extends Shell {
 	private final FormToolkit formToolkit = new FormToolkit(Display.getDefault());
 	private Text text;
 	private Text text_1;
+	private Text textInvoiceOutputFolder;
+
+	private String invoiceOutputFolder;
 
 	/**
 	 * Launch the application.
@@ -76,6 +80,18 @@ public class MainShell extends Shell {
 		setLayout(new FillLayout(SWT.HORIZONTAL));
 
 		TabFolder tabFolder = new TabFolder(this, SWT.NONE);
+		
+		try {
+			File settingsFile = new File("settings.config");
+			if (settingsFile.createNewFile()) {
+				// New Settings File Created
+			} else {
+				// Settings File Already Exists
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		createStudentsTab(tabFolder);
 
@@ -91,21 +107,6 @@ public class MainShell extends Shell {
 		Composite composite = new Composite(tabFolder, SWT.NONE);
 		tbtmStudents.setControl(composite);
 		composite.setLayout(new GridLayout(5, false));
-
-		composite.addKeyListener(new KeyListener() {
-
-			@Override
-			public void keyReleased(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				System.out.println(arg0.keyCode);
-			}
-
-			@Override
-			public void keyPressed(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-
-			}
-		});
 
 		table = new Table(composite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
 		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 5, 1));
@@ -475,16 +476,21 @@ public class MainShell extends Shell {
 		new Label(composite_1, SWT.NONE);
 
 		Label lblInvoiceOutputFolder = new Label(composite_1, SWT.NONE);
+		lblInvoiceOutputFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		formToolkit.adapt(lblInvoiceOutputFolder, true, true);
 		lblInvoiceOutputFolder.setText("Invoice Output Folder");
-		new Label(composite_1, SWT.NONE);
+
+		textInvoiceOutputFolder = new Text(composite_1, SWT.BORDER);
+		textInvoiceOutputFolder.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		formToolkit.adapt(textInvoiceOutputFolder, true, true);
 
 		Button btnChooseFolder = new Button(composite_1, SWT.NONE);
 		btnChooseFolder.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				DirectoryDialog directoryDialog = new DirectoryDialog(getShell());
-				directoryDialog.open();
+				invoiceOutputFolder = directoryDialog.open();
+				textInvoiceOutputFolder.setText(invoiceOutputFolder);
 			}
 		});
 		formToolkit.adapt(btnChooseFolder, true, true);
