@@ -1,6 +1,9 @@
 package violanessInvoiceCreator;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 
@@ -41,11 +44,22 @@ public class MainShell extends Shell {
 	private Table table;
 	private LocalResourceManager localResourceManager;
 	private final FormToolkit formToolkit = new FormToolkit(Display.getDefault());
-	private Text text;
-	private Text text_1;
+	private Text textPayeeName;
+	private Text textPayeeSortCode;
 	private Text textInvoiceOutputFolder;
+	private Text textPayeeAccountNumber;
 
 	private String invoiceOutputFolder;
+	private String payeeName;
+	private String payeeSortCode;
+	private String payeeAccountNumber;
+
+	private final static String INVOICE_OUTPUT_FOLDER = "Invoice Output Folder";
+	private final static String PAYEE_NAME = "Payee Name";
+	private final static String PAYEE_SORT_CODE = "Payee Sort Code";
+	private final static String PAYEE_ACCOUNT_NUMBER = "Payee Account Number";
+
+	private final static String COMMA_DELIMITER = ",";
 
 	/**
 	 * Launch the application.
@@ -80,13 +94,41 @@ public class MainShell extends Shell {
 		setLayout(new FillLayout(SWT.HORIZONTAL));
 
 		TabFolder tabFolder = new TabFolder(this, SWT.NONE);
-		
+
+		payeeName = " ";
+		payeeSortCode = " ";
+		payeeAccountNumber = " ";
+		invoiceOutputFolder = " ";
+
 		try {
 			File settingsFile = new File("settings.config");
 			if (settingsFile.createNewFile()) {
-				// New Settings File Created
+				writeSettingsToFile();
 			} else {
 				// Settings File Already Exists
+				try (BufferedReader br = new BufferedReader(new FileReader("settings.config"))) {
+					String line;
+					while ((line = br.readLine()) != null) {
+						String[] values = line.split(COMMA_DELIMITER);
+
+						if (values.length == 2) {
+							switch (values[0]) {
+							case PAYEE_NAME:
+								payeeName = values[1];
+								break;
+							case PAYEE_SORT_CODE:
+								payeeSortCode = values[1];
+								break;
+							case PAYEE_ACCOUNT_NUMBER:
+								payeeAccountNumber = values[1];
+								break;
+							case INVOICE_OUTPUT_FOLDER:
+								invoiceOutputFolder = values[1];
+								break;
+							}
+						}
+					}
+				}
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -100,15 +142,24 @@ public class MainShell extends Shell {
 		createContents();
 	}
 
+	private void writeSettingsToFile() throws IOException {
+		FileWriter fileWriter = new FileWriter("settings.config");
+		fileWriter.write(PAYEE_NAME + "," + payeeName + "\n");
+		fileWriter.write(PAYEE_SORT_CODE + "," + payeeSortCode + "\n");
+		fileWriter.write(PAYEE_ACCOUNT_NUMBER + "," + payeeAccountNumber + "\n");
+		fileWriter.write(INVOICE_OUTPUT_FOLDER + "," + invoiceOutputFolder + "\n");
+		fileWriter.close();
+	}
+
 	private void createStudentsTab(TabFolder tabFolder) {
 		TabItem tbtmStudents = new TabItem(tabFolder, SWT.NONE);
 		tbtmStudents.setText("Students");
 
-		Composite composite = new Composite(tabFolder, SWT.NONE);
-		tbtmStudents.setControl(composite);
-		composite.setLayout(new GridLayout(5, false));
+		Composite studentsCcomposite = new Composite(tabFolder, SWT.NONE);
+		tbtmStudents.setControl(studentsCcomposite);
+		studentsCcomposite.setLayout(new GridLayout(5, false));
 
-		table = new Table(composite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
+		table = new Table(studentsCcomposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
 		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 5, 1));
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
@@ -117,17 +168,17 @@ public class MainShell extends Shell {
 
 		TableCursor tableCursor = createStudentsTabCursor();
 
-		createStudentsTabButtons(composite, tableCursor);
+		createStudentsTabButtons(studentsCcomposite, tableCursor);
 	}
 
-	private void createStudentsTabButtons(Composite composite, TableCursor tableCursor) {
-		Button btnSave = new Button(composite, SWT.NONE);
+	private void createStudentsTabButtons(Composite studentsComposite, TableCursor tableCursor) {
+		Button btnSave = new Button(studentsComposite, SWT.NONE);
 		btnSave.setText("Save");
 
-		Button btnLoad = new Button(composite, SWT.NONE);
+		Button btnLoad = new Button(studentsComposite, SWT.NONE);
 		btnLoad.setText("Load");
 
-		Button btnGenerate = new Button(composite, SWT.NONE);
+		Button btnGenerate = new Button(studentsComposite, SWT.NONE);
 		btnGenerate.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false, 1, 1));
 		btnGenerate.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -137,7 +188,7 @@ public class MainShell extends Shell {
 		});
 		btnGenerate.setText("Generate");
 
-		Button btnAdd = new Button(composite, SWT.NONE);
+		Button btnAdd = new Button(studentsComposite, SWT.NONE);
 		btnAdd.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -157,7 +208,7 @@ public class MainShell extends Shell {
 		btnAdd.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnAdd.setText("Add Student");
 
-		Button btnRemove = new Button(composite, SWT.NONE);
+		Button btnRemove = new Button(studentsComposite, SWT.NONE);
 		btnRemove.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -447,44 +498,118 @@ public class MainShell extends Shell {
 		TabItem tbtmConfig = new TabItem(tabFolder, SWT.NONE);
 		tbtmConfig.setText("Config");
 
-		Composite composite_1 = new Composite(tabFolder, SWT.NONE);
-		tbtmConfig.setControl(composite_1);
-		formToolkit.paintBordersFor(composite_1);
-		composite_1.setLayout(new GridLayout(3, false));
-		new Label(composite_1, SWT.NONE);
-		new Label(composite_1, SWT.NONE);
-		new Label(composite_1, SWT.NONE);
+		Composite configComposite = new Composite(tabFolder, SWT.NONE);
+		tbtmConfig.setControl(configComposite);
+		formToolkit.paintBordersFor(configComposite);
+		configComposite.setLayout(new GridLayout(3, false));
+		new Label(configComposite, SWT.NONE);
+		new Label(configComposite, SWT.NONE);
+		new Label(configComposite, SWT.NONE);
 
-		Label lblBank = new Label(composite_1, SWT.NONE);
-		lblBank.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		formToolkit.adapt(lblBank, true, true);
-		lblBank.setText("Bank");
+		Label lblPayeeName = new Label(configComposite, SWT.NONE);
+		GridData gd_lblPayeeName = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		gd_lblPayeeName.horizontalIndent = 100;
+		lblPayeeName.setLayoutData(gd_lblPayeeName);
+		formToolkit.adapt(lblPayeeName, true, true);
+		lblPayeeName.setText(PAYEE_NAME);
 
-		text = new Text(composite_1, SWT.BORDER);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		formToolkit.adapt(text, true, true);
-		new Label(composite_1, SWT.NONE);
+		textPayeeName = new Text(configComposite, SWT.BORDER);
+		textPayeeName.setText(payeeName);
+		textPayeeName.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				payeeName = textPayeeName.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textPayeeName = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textPayeeName.widthHint = 300;
+		textPayeeName.setLayoutData(gd_textPayeeName);
+		formToolkit.adapt(textPayeeName, true, true);
+		new Label(configComposite, SWT.NONE);
 
-		Label lblOtherThing = new Label(composite_1, SWT.NONE);
-		lblOtherThing.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		formToolkit.adapt(lblOtherThing, true, true);
-		lblOtherThing.setText("Other THing");
+		Label lblPayeeSortCode = new Label(configComposite, SWT.NONE);
+		GridData gd_lblPayeeSortCode = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		gd_lblPayeeSortCode.horizontalIndent = 100;
+		lblPayeeSortCode.setLayoutData(gd_lblPayeeSortCode);
+		formToolkit.adapt(lblPayeeSortCode, true, true);
+		lblPayeeSortCode.setText(PAYEE_SORT_CODE);
 
-		text_1 = new Text(composite_1, SWT.BORDER);
-		text_1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		formToolkit.adapt(text_1, true, true);
-		new Label(composite_1, SWT.NONE);
+		textPayeeSortCode = new Text(configComposite, SWT.BORDER);
+		textPayeeSortCode.setText(payeeSortCode);
+		textPayeeSortCode.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				payeeSortCode = textPayeeSortCode.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textPayeeSortCode = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textPayeeSortCode.widthHint = 300;
+		textPayeeSortCode.setLayoutData(gd_textPayeeSortCode);
+		formToolkit.adapt(textPayeeSortCode, true, true);
+		new Label(configComposite, SWT.NONE);
 
-		Label lblInvoiceOutputFolder = new Label(composite_1, SWT.NONE);
-		lblInvoiceOutputFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		Label lblPayeeAccountNumber = new Label(configComposite, SWT.NONE);
+		GridData gd_lblPayeeAccountNumber = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		gd_lblPayeeAccountNumber.horizontalIndent = 100;
+		lblPayeeAccountNumber.setLayoutData(gd_lblPayeeAccountNumber);
+		formToolkit.adapt(lblPayeeAccountNumber, true, true);
+		lblPayeeAccountNumber.setText(PAYEE_ACCOUNT_NUMBER);
+
+		textPayeeAccountNumber = new Text(configComposite, SWT.BORDER);
+		textPayeeAccountNumber.setText(payeeAccountNumber);
+		textPayeeAccountNumber.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				payeeAccountNumber = textPayeeAccountNumber.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textPayeeAccountNumber = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textPayeeAccountNumber.widthHint = 300;
+		textPayeeAccountNumber.setLayoutData(gd_textPayeeAccountNumber);
+		formToolkit.adapt(textPayeeAccountNumber, true, true);
+		new Label(configComposite, SWT.NONE);
+
+		Label lblInvoiceOutputFolder = new Label(configComposite, SWT.NONE);
+		GridData gd_lblInvoiceOutputFolder = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		gd_lblInvoiceOutputFolder.horizontalIndent = 100;
+		lblInvoiceOutputFolder.setLayoutData(gd_lblInvoiceOutputFolder);
 		formToolkit.adapt(lblInvoiceOutputFolder, true, true);
-		lblInvoiceOutputFolder.setText("Invoice Output Folder");
+		lblInvoiceOutputFolder.setText(INVOICE_OUTPUT_FOLDER);
 
-		textInvoiceOutputFolder = new Text(composite_1, SWT.BORDER);
-		textInvoiceOutputFolder.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		textInvoiceOutputFolder = new Text(configComposite, SWT.BORDER);
+		textInvoiceOutputFolder.setText(invoiceOutputFolder);
+		textInvoiceOutputFolder.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				invoiceOutputFolder = textInvoiceOutputFolder.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textInvoiceOutputFolder = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textInvoiceOutputFolder.widthHint = 300;
+		textInvoiceOutputFolder.setLayoutData(gd_textInvoiceOutputFolder);
 		formToolkit.adapt(textInvoiceOutputFolder, true, true);
 
-		Button btnChooseFolder = new Button(composite_1, SWT.NONE);
+		Button btnChooseFolder = new Button(configComposite, SWT.NONE);
 		btnChooseFolder.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
