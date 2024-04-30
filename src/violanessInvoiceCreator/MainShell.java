@@ -175,7 +175,7 @@ public class MainShell extends Shell {
 		btnSave.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				FileDialog fileDialog = new FileDialog(getShell());
+				FileDialog fileDialog = new FileDialog(getShell(), SWT.SAVE);
 				fileDialog.setFilterExtensions(new String[] { "*.students" });
 				fileDialog.setFileName(".students");
 				String fileToSave = fileDialog.open();
