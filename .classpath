@@ -37,5 +37,8 @@
 	<classpathentry kind="lib" path="lib/iText/sign-8.0.3.jar"/>
 	<classpathentry kind="lib" path="lib/iText/styled-xml-parser-8.0.3.jar"/>
 	<classpathentry kind="lib" path="lib/iText/svg-8.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j/slf4j-api-2.0.13.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j/slf4j-simple-2.0.13.jar"/>
+	<classpathentry kind="con" path="org.eclipse.fx.ide.jdt.core.JAVAFX_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

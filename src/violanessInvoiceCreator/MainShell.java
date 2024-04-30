@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.HashMap;
 
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -41,10 +42,19 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+
 public class MainShell extends Shell {
-	private Table table;
+
+	@SuppressWarnings("unused")
 	private LocalResourceManager localResourceManager;
+
 	private final FormToolkit formToolkit = new FormToolkit(Display.getDefault());
+
+	private Table table;
+
 	private Text textPayeeName;
 	private Text textPayeeSortCode;
 	private Text textInvoiceOutputFolder;
@@ -55,12 +65,39 @@ public class MainShell extends Shell {
 	private String payeeSortCode;
 	private String payeeAccountNumber;
 
+	// Data Defaults
+	private static final String DEFAULT_LESSONS = "0";
+	private static final String DEFAULT_PRICE = "£0.00";
+	private static final String DEFAULT_DATE = "--/--/----";
+	private static final String DEFAULT_TEXT = "-----";
+	private static final String DEFAULT_NAME = "Name";
+
+	// Configuration Labels
 	private final static String INVOICE_OUTPUT_FOLDER = "Invoice Output Folder";
 	private final static String PAYEE_NAME = "Payee Name";
 	private final static String PAYEE_SORT_CODE = "Payee Sort Code";
 	private final static String PAYEE_ACCOUNT_NUMBER = "Payee Account Number";
 
+	// Delimiter
 	private final static String COMMA_DELIMITER = ",";
+
+	// GUI Instrument Constants
+	private static final String VLN_GUI_TEXT = "Violin";
+	private static final String VLN_HIRED_GUI_TEXT = "Violin (Hired)";
+	private static final String VLA_GUI_TEXT = "Viola";
+	private static final String VLA_HIRED_GUI_TEXT = "Viola (Hired)";
+	private static final String VLN_VLA_GUI_TEXT = "Violin/Viola";
+	private static final String VLN_VLA_HIRED_GUI_TEXT = "Violin/Viola (Hired)";
+
+	// PDF Instrument Constants
+	private static final String VLN_PDF_TEXT = "Violin";
+	private static final String VLN_HIRED_PDF_TEXT = "Violin (Hired)";
+	private static final String VLA_PDF_TEXT = "Viola";
+	private static final String VLA_HIRED_PDF_TEXT = "Viola (Hired)";
+	private static final String VLN_VLA_PDF_TEXT = "Violin/Viola";
+	private static final String VLN_VLA_HIRED_PDF_TEXT = "Violin/Viola (Hired)";
+
+	private static final HashMap<String, String> INSTRUMENTS = new HashMap<String, String>();
 
 	/**
 	 * Launch the application.
@@ -92,6 +129,13 @@ public class MainShell extends Shell {
 		super(display, SWT.SHELL_TRIM);
 		createResourceManager();
 		setLayout(new FillLayout(SWT.HORIZONTAL));
+
+		INSTRUMENTS.put(VLN_GUI_TEXT, VLN_PDF_TEXT);
+		INSTRUMENTS.put(VLN_HIRED_GUI_TEXT, VLN_HIRED_PDF_TEXT);
+		INSTRUMENTS.put(VLA_GUI_TEXT, VLA_PDF_TEXT);
+		INSTRUMENTS.put(VLA_HIRED_GUI_TEXT, VLA_HIRED_PDF_TEXT);
+		INSTRUMENTS.put(VLN_VLA_GUI_TEXT, VLN_VLA_PDF_TEXT);
+		INSTRUMENTS.put(VLN_VLA_HIRED_GUI_TEXT, VLN_VLA_HIRED_PDF_TEXT);
 
 		TabFolder tabFolder = new TabFolder(this, SWT.NONE);
 
@@ -177,7 +221,6 @@ public class MainShell extends Shell {
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog fileDialog = new FileDialog(getShell(), SWT.SAVE);
 				fileDialog.setFilterExtensions(new String[] { "*.students" });
-				fileDialog.setFileName(".students");
 				String fileToSave = fileDialog.open();
 
 				if (fileToSave == null)
@@ -263,6 +306,61 @@ public class MainShell extends Shell {
 		btnGenerate.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				writePDFs();
+			}
+
+			private void writePDFs() {
+
+				for (TableItem student : table.getItems()) {
+
+					String studentName = student.getText(0);
+					String instrument = student.getText(1);
+					String term = student.getText(2);
+					String numberOfLessons = student.getText(3);
+					String rate = student.getText(4);
+					String date = student.getText(5);
+					String extraOne = student.getText(6);
+					String extraOnePrice = student.getText(7);
+					String extraTwo = student.getText(8);
+					String extraTwoPrice = student.getText(9);
+
+					String path = studentName + ".pdf";
+					try {
+						PdfWriter pdfWriter = new PdfWriter(path);
+
+						PdfDocument pdfDocument = new PdfDocument(pdfWriter);
+						pdfDocument.addNewPage();
+
+						Document document = new Document(pdfDocument);
+
+						// Creating a table
+						com.itextpdf.layout.element.Table table = new com.itextpdf.layout.element.Table(3);
+
+						// Adding cells to the table
+						table.addCell("Item");
+						table.addCell(" ");
+						table.addCell("Price");
+						table.addCell(instrument + " Lessons");
+						table.addCell(" ");
+						table.addCell(rate);
+						table.addCell(extraOne);
+						table.addCell(" ");
+						table.addCell(extraOnePrice);
+						table.addCell(extraTwo);
+						table.addCell(" ");
+						table.addCell(extraTwoPrice);
+
+						table.setFixedPosition(50, 500, 500);
+
+						// Adding Table to document
+						document.add(table);
+
+						document.close();
+
+					} catch (FileNotFoundException e1) {
+						e1.printStackTrace();
+					}
+				}
 
 			}
 		});
@@ -273,16 +371,16 @@ public class MainShell extends Shell {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				TableItem newStudent = new TableItem(table, SWT.NONE);
-				newStudent.setText(0, "Name");
-				newStudent.setText(1, "-----");
-				newStudent.setText(2, "-----");
-				newStudent.setText(3, "0");
-				newStudent.setText(4, "£0.00");
-				newStudent.setText(5, "--/--/----");
-				newStudent.setText(6, "-----");
-				newStudent.setText(7, "£0.00");
-				newStudent.setText(8, "-----");
-				newStudent.setText(9, "£0.00");
+				newStudent.setText(0, DEFAULT_NAME);
+				newStudent.setText(1, DEFAULT_TEXT);
+				newStudent.setText(2, DEFAULT_TEXT);
+				newStudent.setText(3, DEFAULT_LESSONS);
+				newStudent.setText(4, DEFAULT_PRICE);
+				newStudent.setText(5, DEFAULT_DATE);
+				newStudent.setText(6, DEFAULT_TEXT);
+				newStudent.setText(7, DEFAULT_PRICE);
+				newStudent.setText(8, DEFAULT_TEXT);
+				newStudent.setText(9, DEFAULT_PRICE);
 			}
 		});
 		btnAdd.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -335,12 +433,13 @@ public class MainShell extends Shell {
 				// Instrument Editor
 				case 1:
 					final Combo instrumentCombo = new Combo(tableCursor, SWT.NONE);
-					instrumentCombo.add("Violin");
-					instrumentCombo.add("Violin (Hired)");
-					instrumentCombo.add("Viola");
-					instrumentCombo.add("Viola (Hired)");
-					instrumentCombo.add("Violin/Viola");
-					instrumentCombo.add("Violin/Viola (Hired)");
+
+					instrumentCombo.add(VLN_GUI_TEXT);
+					instrumentCombo.add(VLN_HIRED_GUI_TEXT);
+					instrumentCombo.add(VLA_GUI_TEXT);
+					instrumentCombo.add(VLA_HIRED_GUI_TEXT);
+					instrumentCombo.add(VLN_VLA_GUI_TEXT);
+					instrumentCombo.add(VLN_VLA_HIRED_GUI_TEXT);
 
 					instrumentCombo.addModifyListener(new ModifyListener() {
 
@@ -394,7 +493,7 @@ public class MainShell extends Shell {
 					// The Editor for the Selected Cell
 					final Text lessonsText = new Text(tableCursor, SWT.NONE);
 
-					if (cursorRow.getText(column) == "0") {
+					if (cursorRow.getText(column) == DEFAULT_LESSONS) {
 						lessonsText.setText("");
 					} else {
 						lessonsText.setText(cursorRow.getText(column));
@@ -424,7 +523,7 @@ public class MainShell extends Shell {
 								int currentColumn = tableCursor.getColumn();
 
 								if (lessonsText.getText() == "") {
-									lessonsText.setText("0");
+									lessonsText.setText(DEFAULT_LESSONS);
 								}
 
 								for (TableItem row : table.getSelection()) {
@@ -451,7 +550,7 @@ public class MainShell extends Shell {
 					// The Editor for the Selected Cell
 					final Text simpleText = new Text(tableCursor, SWT.NONE);
 
-					if (cursorRow.getText(column) == "Name" || cursorRow.getText(column) == "-----") {
+					if (cursorRow.getText(column) == DEFAULT_NAME || cursorRow.getText(column) == DEFAULT_TEXT) {
 						simpleText.setText("");
 					} else {
 						simpleText.setText(cursorRow.getText(column));
@@ -517,7 +616,7 @@ public class MainShell extends Shell {
 								} else if (!moneyText.getText().contains(".")) {
 									moneyText.setText(moneyText.getText() + ".00");
 								} else if (moneyText.getText().startsWith(".")) {
-									moneyText.setText("0" + moneyText.getText());
+									moneyText.setText(DEFAULT_LESSONS + moneyText.getText());
 								}
 								for (TableItem row : table.getSelection()) {
 									row.setText(currentColumn, "£" + moneyText.getText());
