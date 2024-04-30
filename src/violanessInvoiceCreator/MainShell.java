@@ -2,12 +2,12 @@ package violanessInvoiceCreator;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.swt.SWT;
@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
@@ -90,7 +91,6 @@ public class MainShell extends Shell {
 	public MainShell(Display display) {
 		super(display, SWT.SHELL_TRIM);
 		createResourceManager();
-		setImage(localResourceManager.create(ImageDescriptor.createFromFile(MainShell.class, "/images/Alto Clef.png")));
 		setLayout(new FillLayout(SWT.HORIZONTAL));
 
 		TabFolder tabFolder = new TabFolder(this, SWT.NONE);
@@ -131,7 +131,6 @@ public class MainShell extends Shell {
 				}
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -173,9 +172,90 @@ public class MainShell extends Shell {
 
 	private void createStudentsTabButtons(Composite studentsComposite, TableCursor tableCursor) {
 		Button btnSave = new Button(studentsComposite, SWT.NONE);
+		btnSave.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog fileDialog = new FileDialog(getShell());
+				fileDialog.setFilterExtensions(new String[] { "*.students" });
+				fileDialog.setFileName(".students");
+				String fileToSave = fileDialog.open();
+
+				if (fileToSave == null)
+					return;
+
+				if (!fileToSave.endsWith(".students")) {
+					fileToSave += ".students";
+				}
+
+				try {
+					FileWriter fileWriter = new FileWriter(fileToSave);
+
+					for (TableItem item : table.getItems()) {
+
+						String lineToWrite = "";
+						lineToWrite += item.getText(0);
+						lineToWrite += "," + item.getText(1);
+						lineToWrite += "," + item.getText(2);
+						lineToWrite += "," + item.getText(3);
+						lineToWrite += "," + item.getText(4);
+						lineToWrite += "," + item.getText(5);
+						lineToWrite += "," + item.getText(6);
+						lineToWrite += "," + item.getText(7);
+						lineToWrite += "," + item.getText(8);
+						lineToWrite += "," + item.getText(9) + "\n";
+
+						fileWriter.write(lineToWrite);
+					}
+
+					fileWriter.close();
+
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+
+			}
+		});
 		btnSave.setText("Save");
 
 		Button btnLoad = new Button(studentsComposite, SWT.NONE);
+		btnLoad.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog fileDialog = new FileDialog(getShell());
+				String fileToLoad = fileDialog.open();
+
+				if (fileToLoad != null) {
+
+					try (BufferedReader br = new BufferedReader(new FileReader(fileToLoad))) {
+						String line;
+
+						while ((line = br.readLine()) != null) {
+							String[] values = line.split(COMMA_DELIMITER);
+
+							TableItem newTableItem = new TableItem(table, SWT.NONE);
+							newTableItem.setText(0, values[0]);
+							newTableItem.setText(1, values[1]);
+							newTableItem.setText(2, values[2]);
+							newTableItem.setText(3, values[3]);
+							newTableItem.setText(4, values[4]);
+							newTableItem.setText(5, values[5]);
+							newTableItem.setText(6, values[6]);
+							newTableItem.setText(7, values[7]);
+							newTableItem.setText(8, values[8]);
+							newTableItem.setText(9, values[9]);
+						}
+					} catch (FileNotFoundException e1) {
+						System.out.println("File Not Found");
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						System.out.println("IO Exception");
+						e1.printStackTrace();
+					}
+				} else {
+					System.out.println("File String is Null");
+				}
+			}
+		});
 		btnLoad.setText("Load");
 
 		Button btnGenerate = new Button(studentsComposite, SWT.NONE);
@@ -521,7 +601,6 @@ public class MainShell extends Shell {
 				try {
 					writeSettingsToFile();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -547,7 +626,6 @@ public class MainShell extends Shell {
 				try {
 					writeSettingsToFile();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -573,7 +651,6 @@ public class MainShell extends Shell {
 				try {
 					writeSettingsToFile();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -599,7 +676,6 @@ public class MainShell extends Shell {
 				try {
 					writeSettingsToFile();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
