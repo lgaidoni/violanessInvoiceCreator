@@ -59,11 +59,15 @@ public class MainShell extends Shell {
 	private Text textPayeeSortCode;
 	private Text textInvoiceOutputFolder;
 	private Text textPayeeAccountNumber;
+	private Text textPayeeBankName;
+	private Text textCustomLogo;
 
 	private String invoiceOutputFolder;
 	private String payeeName;
 	private String payeeSortCode;
 	private String payeeAccountNumber;
+	private String payeeBankName;
+	private String customLogo;
 
 	// Data Defaults
 	private static final String DEFAULT_LESSONS = "0";
@@ -74,9 +78,11 @@ public class MainShell extends Shell {
 
 	// Configuration Labels
 	private final static String INVOICE_OUTPUT_FOLDER = "Invoice Output Folder";
+	private final static String CUSTOM_LOGO = "Custom Logo";
 	private final static String PAYEE_NAME = "Payee Name";
 	private final static String PAYEE_SORT_CODE = "Payee Sort Code";
 	private final static String PAYEE_ACCOUNT_NUMBER = "Payee Account Number";
+	private final static String PAYEE_BANK_NAME = "Payee Bank Name";
 
 	// Delimiter
 	private final static String COMMA_DELIMITER = ",";
@@ -89,6 +95,8 @@ public class MainShell extends Shell {
 	private static final String VLN_VLA_GUI_TEXT = "Violin/Viola";
 	private static final String VLN_VLA_HIRED_GUI_TEXT = "Violin/Viola (Hired)";
 
+	private static final HashMap<String, String> INSTRUMENTS = new HashMap<String, String>();
+
 	// PDF Instrument Constants
 	private static final String VLN_PDF_TEXT = "Violin";
 	private static final String VLN_HIRED_PDF_TEXT = "Violin (Hired)";
@@ -96,8 +104,6 @@ public class MainShell extends Shell {
 	private static final String VLA_HIRED_PDF_TEXT = "Viola (Hired)";
 	private static final String VLN_VLA_PDF_TEXT = "Violin/Viola";
 	private static final String VLN_VLA_HIRED_PDF_TEXT = "Violin/Viola (Hired)";
-
-	private static final HashMap<String, String> INSTRUMENTS = new HashMap<String, String>();
 
 	/**
 	 * Launch the application.
@@ -142,7 +148,9 @@ public class MainShell extends Shell {
 		payeeName = " ";
 		payeeSortCode = " ";
 		payeeAccountNumber = " ";
+		payeeBankName = " ";
 		invoiceOutputFolder = " ";
+		customLogo = " ";
 
 		try {
 			File settingsFile = new File("settings.config");
@@ -166,8 +174,14 @@ public class MainShell extends Shell {
 							case PAYEE_ACCOUNT_NUMBER:
 								payeeAccountNumber = values[1];
 								break;
+							case PAYEE_BANK_NAME:
+								payeeBankName = values[1];
+								break;
 							case INVOICE_OUTPUT_FOLDER:
 								invoiceOutputFolder = values[1];
+								break;
+							case CUSTOM_LOGO:
+								customLogo = values[1];
 								break;
 							}
 						}
@@ -190,7 +204,9 @@ public class MainShell extends Shell {
 		fileWriter.write(PAYEE_NAME + "," + payeeName + "\n");
 		fileWriter.write(PAYEE_SORT_CODE + "," + payeeSortCode + "\n");
 		fileWriter.write(PAYEE_ACCOUNT_NUMBER + "," + payeeAccountNumber + "\n");
+		fileWriter.write(PAYEE_BANK_NAME + "," + payeeBankName + "\n");
 		fileWriter.write(INVOICE_OUTPUT_FOLDER + "," + invoiceOutputFolder + "\n");
+		fileWriter.write(CUSTOM_LOGO + "," + customLogo + "\n");
 		fileWriter.close();
 	}
 
@@ -325,6 +341,7 @@ public class MainShell extends Shell {
 					String extraTwoPrice = student.getText(9);
 
 					String path = studentName + ".pdf";
+
 					try {
 						PdfWriter pdfWriter = new PdfWriter(path);
 
@@ -684,6 +701,8 @@ public class MainShell extends Shell {
 		new Label(configComposite, SWT.NONE);
 		new Label(configComposite, SWT.NONE);
 		new Label(configComposite, SWT.NONE);
+		
+		// --- Payee Name --- //
 
 		Label lblPayeeName = new Label(configComposite, SWT.NONE);
 		GridData gd_lblPayeeName = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
@@ -709,6 +728,8 @@ public class MainShell extends Shell {
 		textPayeeName.setLayoutData(gd_textPayeeName);
 		formToolkit.adapt(textPayeeName, true, true);
 		new Label(configComposite, SWT.NONE);
+		
+		// -- Payee Sort Code --- //
 
 		Label lblPayeeSortCode = new Label(configComposite, SWT.NONE);
 		GridData gd_lblPayeeSortCode = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
@@ -734,6 +755,8 @@ public class MainShell extends Shell {
 		textPayeeSortCode.setLayoutData(gd_textPayeeSortCode);
 		formToolkit.adapt(textPayeeSortCode, true, true);
 		new Label(configComposite, SWT.NONE);
+		
+		// -- Payee Account Number -- //
 
 		Label lblPayeeAccountNumber = new Label(configComposite, SWT.NONE);
 		GridData gd_lblPayeeAccountNumber = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
@@ -759,6 +782,75 @@ public class MainShell extends Shell {
 		textPayeeAccountNumber.setLayoutData(gd_textPayeeAccountNumber);
 		formToolkit.adapt(textPayeeAccountNumber, true, true);
 		new Label(configComposite, SWT.NONE);
+		
+		// -- Payee Bank Name -- //
+
+		Label lblPayeeBankName = new Label(configComposite, SWT.NONE);
+		lblPayeeBankName.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		formToolkit.adapt(lblPayeeBankName, true, true);
+		lblPayeeBankName.setText(PAYEE_BANK_NAME);
+
+		textPayeeBankName = new Text(configComposite, SWT.BORDER);
+		textPayeeBankName.setText(payeeBankName);
+		textPayeeBankName.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				payeeBankName = textPayeeBankName.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textPayeeBankName = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textPayeeBankName.widthHint = 300;
+		textPayeeBankName.setLayoutData(gd_textPayeeBankName);
+		formToolkit.adapt(textPayeeBankName, true, true);
+		new Label(configComposite, SWT.NONE);
+		
+		// -- Custom Logo -- //
+
+		Label lblCustomLogo = new Label(configComposite, SWT.NONE);
+		lblCustomLogo.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		formToolkit.adapt(lblCustomLogo, true, true);
+		lblCustomLogo.setText("Custom Logo");
+
+		textCustomLogo = new Text(configComposite, SWT.BORDER);
+		textCustomLogo.setText(customLogo);
+		textCustomLogo.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				customLogo = textCustomLogo.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textCustomLogo = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textCustomLogo.widthHint = 300;
+		textCustomLogo.setLayoutData(gd_textCustomLogo);
+		formToolkit.adapt(textCustomLogo, true, true);
+
+		Button btnChooseCustomLogo = new Button(configComposite, SWT.NONE);
+		GridData gd_btnChooseCustomLogo = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_btnChooseCustomLogo.widthHint = 100;
+		btnChooseCustomLogo.setLayoutData(gd_btnChooseCustomLogo);
+		btnChooseCustomLogo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog fileDialog = new FileDialog(getShell());
+				customLogo = fileDialog.open();
+
+				if (customLogo != null) {
+					textCustomLogo.setText(customLogo);
+				}
+			}
+		});
+		formToolkit.adapt(btnChooseCustomLogo, true, true);
+		btnChooseCustomLogo.setText("Choose File");
+		
+		// -- Invoice Output Folder -- //
 
 		Label lblInvoiceOutputFolder = new Label(configComposite, SWT.NONE);
 		GridData gd_lblInvoiceOutputFolder = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
@@ -785,12 +877,18 @@ public class MainShell extends Shell {
 		formToolkit.adapt(textInvoiceOutputFolder, true, true);
 
 		Button btnChooseFolder = new Button(configComposite, SWT.NONE);
+		GridData gd_btnChooseFolder = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
+		gd_btnChooseFolder.widthHint = 100;
+		btnChooseFolder.setLayoutData(gd_btnChooseFolder);
 		btnChooseFolder.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				DirectoryDialog directoryDialog = new DirectoryDialog(getShell());
 				invoiceOutputFolder = directoryDialog.open();
-				textInvoiceOutputFolder.setText(invoiceOutputFolder);
+
+				if (invoiceOutputFolder != null) {
+					textInvoiceOutputFolder.setText(invoiceOutputFolder);
+				}
 			}
 		});
 		formToolkit.adapt(btnChooseFolder, true, true);
