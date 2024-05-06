@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.HashMap;
 
@@ -53,6 +54,9 @@ import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.borders.SolidBorder;
+import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.properties.HorizontalAlignment;
@@ -73,6 +77,9 @@ public class MainShell extends Shell {
 	private Text textPayeeAccountNumber;
 	private Text textPayeeBankName;
 	private Text textCustomLogo;
+	private Text textTelephoneNumber;
+	private Text textEmailAddress;
+	private Text textWebAddress;
 
 	private String invoiceOutputFolder;
 	private String payeeName;
@@ -80,6 +87,9 @@ public class MainShell extends Shell {
 	private String payeeAccountNumber;
 	private String payeeBankName;
 	private String customLogo;
+	private String telephoneNumber;
+	private String emailAddress;
+	private String webAddress;
 
 	// Data Defaults
 	private static final String DEFAULT_LESSONS = "0";
@@ -95,6 +105,9 @@ public class MainShell extends Shell {
 	private final static String PAYEE_SORT_CODE = "Payee Sort Code";
 	private final static String PAYEE_ACCOUNT_NUMBER = "Payee Account Number";
 	private final static String PAYEE_BANK_NAME = "Payee Bank Name";
+	private final static String TELEPHONE_NUMBER = "Telephone Number";
+	private final static String EMAIL_ADDRESS = "Email Address";
+	private final static String WEB_ADDRESS = "Website Address";
 
 	// Delimiter
 	private final static String COMMA_DELIMITER = ",";
@@ -130,15 +143,15 @@ public class MainShell extends Shell {
 	private static final String AUTUMN_GUI_2 = "Autumn (2nd)";
 
 	// PDF Term Constants
-	private static final String SPRING_PDF = "Spring";
-	private static final String SPRING_PDF_1 = "Spring (1st)";
-	private static final String SPRING_PDF_2 = "Spring (2nd)";
-	private static final String SUMMER_PDF = "Summer";
-	private static final String SUMMER_PDF_1 = "Summer (1st)";
-	private static final String SUMMER_PDF_2 = "Summer (2nd)";
-	private static final String AUTUMN_PDF = "Autumn";
-	private static final String AUTUMN_PDF_1 = "Autumn (1st)";
-	private static final String AUTUMN_PDF_2 = "Autumn (2nd)";
+	private static final String SPRING_PDF = "Spring Term";
+	private static final String SPRING_PDF_1 = "Spring Term (1st Half)";
+	private static final String SPRING_PDF_2 = "Spring Term (2nd Half)";
+	private static final String SUMMER_PDF = "Summer Term";
+	private static final String SUMMER_PDF_1 = "Summer Term (1st Half)";
+	private static final String SUMMER_PDF_2 = "Summer Term (2nd Half)";
+	private static final String AUTUMN_PDF = "Autumn Term";
+	private static final String AUTUMN_PDF_1 = "Autumn Term (1st Half)";
+	private static final String AUTUMN_PDF_2 = "Autumn Term (2nd Half)";
 
 	// Hash Map for the Terms
 	private static final HashMap<String, String> TERMS = new HashMap<String, String>();
@@ -201,6 +214,9 @@ public class MainShell extends Shell {
 		payeeBankName = " ";
 		invoiceOutputFolder = " ";
 		customLogo = " ";
+		telephoneNumber = " ";
+		emailAddress = " ";
+		webAddress = " ";
 
 		try {
 			File settingsFile = new File("settings.config");
@@ -233,6 +249,15 @@ public class MainShell extends Shell {
 							case CUSTOM_LOGO:
 								customLogo = values[1];
 								break;
+							case TELEPHONE_NUMBER:
+								telephoneNumber = values[1];
+								break;
+							case EMAIL_ADDRESS:
+								emailAddress = values[1];
+								break;
+							case WEB_ADDRESS:
+								webAddress = values[1];
+								break;
 							}
 						}
 					}
@@ -257,6 +282,9 @@ public class MainShell extends Shell {
 		fileWriter.write(PAYEE_BANK_NAME + "," + payeeBankName + "\n");
 		fileWriter.write(INVOICE_OUTPUT_FOLDER + "," + invoiceOutputFolder + "\n");
 		fileWriter.write(CUSTOM_LOGO + "," + customLogo + "\n");
+		fileWriter.write(TELEPHONE_NUMBER + "," + telephoneNumber + "\n");
+		fileWriter.write(EMAIL_ADDRESS + "," + emailAddress + "\n");
+		fileWriter.write(WEB_ADDRESS + "," + webAddress + "\n");
 		fileWriter.close();
 	}
 
@@ -389,15 +417,31 @@ public class MainShell extends Shell {
 					String studentName = student.getText(0);
 					String instrument = student.getText(1);
 					String term = student.getText(2);
+
 					String numberOfLessons = student.getText(3);
+					int numberOfLessonsInt = Integer.valueOf(numberOfLessons);
+
 					String rate = student.getText(4);
-					String date = student.getText(5);
+					double rateDouble = Double.valueOf(rate.replace("£", ""));
+
+					String dateText = student.getText(5);
+					String dateArray[] = dateText.split("/");
+
+					LocalDate date = LocalDate.of(Integer.valueOf(dateArray[2]), Integer.valueOf(dateArray[1]) - 1,
+							Integer.valueOf(dateArray[0]));
+
 					String extraOne = student.getText(6);
 					String extraOnePrice = student.getText(7);
+					double extraOnePriceDouble = Double.valueOf(extraOnePrice.replace("£", ""));
+
 					String extraTwo = student.getText(8);
 					String extraTwoPrice = student.getText(9);
+					double extraTwoPriceDouble = Double.valueOf(extraTwoPrice.replace("£", ""));
 
-					String path = invoiceOutputFolder + "/" + studentName + ".pdf";
+					int invoiceNumber = (int) (Math.random() * 10000000);
+
+					String path = invoiceOutputFolder + "/" + date.getYear() + " - " + studentName + " - "
+							+ invoiceNumber + ".pdf";
 
 					float[] blueColourValues = { (float) 0.7, (float) 0.43, (float) 0.0, (float) 0.44 };
 					Color blueColour = Color.createColorWithColorSpace(blueColourValues);
@@ -431,7 +475,7 @@ public class MainShell extends Shell {
 
 							image.setHorizontalAlignment(HorizontalAlignment.CENTER);
 							image.setTextAlignment(TextAlignment.CENTER);
-							image.setWidth(100);
+							image.setWidth(120);
 
 							document.add(image);
 						}
@@ -440,37 +484,354 @@ public class MainShell extends Shell {
 						 * Add the Title
 						 */
 						{
-							Paragraph titleName = new Paragraph();
-							titleName.add(payeeName);
-							titleName.setTextAlignment(TextAlignment.CENTER);
-							titleName.setFontSize(12);
-							titleName.setFont(font);
-							titleName.setFontColor(blueColour);
+							Paragraph pTitleName = new Paragraph();
+							pTitleName.add(payeeName);
+							pTitleName.setTextAlignment(TextAlignment.CENTER);
+							pTitleName.setFontSize(13);
+							pTitleName.setFont(font);
+							pTitleName.setFontColor(blueColour);
+							pTitleName.setMarginBottom(0);
+							pTitleName.setMarginTop(0);
 
-							document.add(titleName);
+							document.add(pTitleName);
 						}
 
-						// Creating a table
-						com.itextpdf.layout.element.Table table = new com.itextpdf.layout.element.Table(3);
+						/**
+						 * Add the Telephone Number
+						 */
+						{
+							Paragraph pTelephoneNumber = new Paragraph();
+							pTelephoneNumber.add(telephoneNumber);
+							pTelephoneNumber.setTextAlignment(TextAlignment.CENTER);
+							pTelephoneNumber.setFontSize(13);
+							pTelephoneNumber.setFont(font);
+							pTelephoneNumber.setFontColor(blueColour);
+							pTelephoneNumber.setMarginBottom(0);
+							pTelephoneNumber.setMarginTop(0);
 
-						// Adding cells to the table
-						table.addCell("Item");
-						table.addCell(" ");
-						table.addCell("Price");
-						table.addCell(instrument + " Lessons");
-						table.addCell(" ");
-						table.addCell(rate);
-						table.addCell(extraOne);
-						table.addCell(" ");
-						table.addCell(extraOnePrice);
-						table.addCell(extraTwo);
-						table.addCell(" ");
-						table.addCell(extraTwoPrice);
+							document.add(pTelephoneNumber);
+						}
 
-						table.setFixedPosition(50, 500, 500);
+						/**
+						 * Add the E-Mail Address
+						 */
+						{
+							Paragraph pEmailAddress = new Paragraph();
+							pEmailAddress.add(emailAddress);
+							pEmailAddress.setTextAlignment(TextAlignment.CENTER);
+							pEmailAddress.setFontSize(11);
+							pEmailAddress.setFont(font);
+							pEmailAddress.setFontColor(blueColour);
+							pEmailAddress.setMarginBottom(0);
+							pEmailAddress.setMarginTop(0);
 
-						// Adding Table to document
-						document.add(table);
+							document.add(pEmailAddress);
+						}
+
+						/**
+						 * Add the Web Address
+						 */
+						{
+							Paragraph pWebAddress = new Paragraph();
+							pWebAddress.add(webAddress);
+							pWebAddress.setTextAlignment(TextAlignment.CENTER);
+							pWebAddress.setFontSize(11);
+							pWebAddress.setFont(font);
+							pWebAddress.setFontColor(blueColour);
+							pWebAddress.setMarginBottom(0);
+							pWebAddress.setMarginTop(0);
+
+							document.add(pWebAddress);
+						}
+
+						/**
+						 * Add the Title
+						 */
+						{
+							Paragraph pTitle = new Paragraph();
+
+							String titleInstrument = "";
+
+							if (instrument.contains("Violin/Viola")) {
+								titleInstrument = "Violin/Viola";
+							} else if (instrument.contains("Violin")) {
+								titleInstrument = "Violin";
+							} else if (instrument.contains("Viola")) {
+								titleInstrument = "Viola";
+							} else {
+								titleInstrument = "";
+							}
+
+							String titleText = titleInstrument + " Lessons - Invoice";
+
+							pTitle.add(titleText);
+							pTitle.setTextAlignment(TextAlignment.CENTER);
+							pTitle.setFontSize(20);
+							pTitle.setFont(font);
+							pTitle.setFontColor(blueColour);
+							pTitle.setMarginBottom(0);
+							pTitle.setMarginTop(30);
+
+							document.add(pTitle);
+						}
+
+						/**
+						 * Add the Invoice Information
+						 */
+						{
+							Paragraph pInvoiceInfoTitle = new Paragraph();
+
+							String invoiceInfoTitle = "Tuition Fees for " + TERMS.get(term) + " - " + date.getYear();
+
+							pInvoiceInfoTitle.add(invoiceInfoTitle);
+							pInvoiceInfoTitle.setTextAlignment(TextAlignment.LEFT);
+							pInvoiceInfoTitle.setFontSize(11);
+							pInvoiceInfoTitle.setFont(font);
+							pInvoiceInfoTitle.setMarginBottom(0);
+							pInvoiceInfoTitle.setMarginTop(30);
+							pInvoiceInfoTitle.setUnderline();
+							pInvoiceInfoTitle.setMarginLeft(25);
+
+							document.add(pInvoiceInfoTitle);
+
+							Paragraph pInvoiceInfo = new Paragraph();
+
+							String invoiceInfo = "";
+							invoiceInfo += "Invoice Number:  " + invoiceNumber + "\n";
+							invoiceInfo += "Invoice Date:    " + dateText + "\n";
+							invoiceInfo += "Pupil's Name:    " + studentName + "\n";
+
+							pInvoiceInfo.add(invoiceInfo);
+							pInvoiceInfo.setTextAlignment(TextAlignment.LEFT);
+							pInvoiceInfo.setFontSize(11);
+							pInvoiceInfo.setFont(font);
+							pInvoiceInfo.setMarginBottom(0);
+							pInvoiceInfo.setMarginTop(10);
+							pInvoiceInfo.setMarginLeft(25);
+
+							document.add(pInvoiceInfo);
+						}
+
+						/**
+						 * Add the Table of Costs
+						 */
+						{
+							Paragraph pFeesTitle = new Paragraph();
+
+							pFeesTitle.add("Fees:");
+							pFeesTitle.setTextAlignment(TextAlignment.LEFT);
+							pFeesTitle.setFontSize(11);
+							pFeesTitle.setFont(font);
+							pFeesTitle.setMarginBottom(0);
+							pFeesTitle.setMarginTop(30);
+							pFeesTitle.setUnderline();
+							pFeesTitle.setMarginLeft(25);
+
+							document.add(pFeesTitle);
+
+							com.itextpdf.layout.element.Table table = new com.itextpdf.layout.element.Table(2);
+
+							// -- Tuition Cell -- //
+							Cell tuitionCell = new Cell();
+
+							String tableInstrument = "";
+
+							if (instrument.contains("Violin/Viola")) {
+								tableInstrument = " Violin/Viola";
+							} else if (instrument.contains("Violin")) {
+								tableInstrument = " Violin";
+							} else if (instrument.contains("Viola")) {
+								tableInstrument = " Viola";
+							} else {
+								tableInstrument = "";
+							}
+
+							Paragraph pTuition = new Paragraph();
+							pTuition.add(numberOfLessons + " weeks" + tableInstrument + " tuition @ " + rate);
+							pTuition.setFontSize(11);
+							pTuition.setFont(font);
+							pTuition.setMarginRight(10);
+							pTuition.setTextAlignment(TextAlignment.RIGHT);
+
+							tuitionCell.add(pTuition);
+							tuitionCell.setBorder(Border.NO_BORDER);
+
+							table.addCell(tuitionCell);
+
+							// -- Rate Cell -- //
+							Cell rateCell = new Cell();
+
+							double finalRate = rateDouble * numberOfLessonsInt;
+
+							Paragraph pRate = new Paragraph();
+							pRate.add("£" + String.format("%.2f", finalRate));
+							pRate.setFontSize(11);
+							pRate.setFont(font);
+							pRate.setMarginLeft(10);
+
+							rateCell.add(pRate);
+							rateCell.setBorder(Border.NO_BORDER);
+							rateCell.setBorderLeft(new SolidBorder(0.5f));
+
+							table.addCell(rateCell);
+
+							// -- Extra One Info Cell -- //
+							Cell extraOneCell = new Cell();
+
+							Paragraph pExtraOne = new Paragraph();
+							pExtraOne.add(extraOne);
+							pExtraOne.setFontSize(11);
+							pExtraOne.setFont(font);
+							pExtraOne.setMarginRight(10);
+							pExtraOne.setTextAlignment(TextAlignment.RIGHT);
+
+							extraOneCell.add(pExtraOne);
+							extraOneCell.setBorder(Border.NO_BORDER);
+
+							table.addCell(extraOneCell);
+
+							// -- Extra One Price Cell -- //
+							Cell extraOnePriceCell = new Cell();
+
+							Paragraph pExtraOnePrice = new Paragraph();
+							pExtraOnePrice.add(extraOnePrice);
+							pExtraOnePrice.setFontSize(11);
+							pExtraOnePrice.setFont(font);
+							pExtraOnePrice.setMarginLeft(10);
+
+							extraOnePriceCell.add(pExtraOnePrice);
+							extraOnePriceCell.setBorder(Border.NO_BORDER);
+							extraOnePriceCell.setBorderLeft(new SolidBorder(0.5f));
+
+							table.addCell(extraOnePriceCell);
+
+							// -- Extra Two Info Cell -- //
+							Cell extraTwoCell = new Cell();
+
+							Paragraph pExtraTwo = new Paragraph();
+							pExtraTwo.add(extraTwo);
+							pExtraTwo.setFontSize(11);
+							pExtraTwo.setFont(font);
+							pExtraTwo.setMarginRight(10);
+							pExtraTwo.setTextAlignment(TextAlignment.RIGHT);
+
+							extraTwoCell.add(pExtraTwo);
+							extraTwoCell.setBorder(Border.NO_BORDER);
+
+							table.addCell(extraTwoCell);
+
+							// -- Extra Two Price Cell -- //
+							Cell extraTwoPriceCell = new Cell();
+
+							Paragraph pExtraTwoPrice = new Paragraph();
+							pExtraTwoPrice.add(extraTwoPrice);
+							pExtraTwoPrice.setFontSize(11);
+							pExtraTwoPrice.setFont(font);
+							pExtraTwoPrice.setMarginLeft(10);
+
+							extraTwoPriceCell.add(pExtraTwoPrice);
+							extraTwoPriceCell.setBorder(Border.NO_BORDER);
+							extraTwoPriceCell.setBorderLeft(new SolidBorder(0.5f));
+
+							table.addCell(extraTwoPriceCell);
+
+							// -- Filler Cells -- //
+
+							addFillerRows(table);
+
+							// -- Total Cells -- //
+
+							// -- Extra Two Info Cell -- //
+							Cell totalCell = new Cell();
+
+							Paragraph ptotal = new Paragraph();
+							ptotal.add("Total");
+							ptotal.setFontSize(11);
+							ptotal.setFont(font);
+							ptotal.setMarginRight(10);
+							ptotal.setTextAlignment(TextAlignment.RIGHT);
+
+							totalCell.add(ptotal);
+							totalCell.setBorder(Border.NO_BORDER);
+
+							table.addCell(totalCell);
+
+							// -- Extra Two Price Cell -- //
+							Cell totalPriceCell = new Cell();
+
+							double finalTotal = finalRate + extraOnePriceDouble + extraTwoPriceDouble;
+
+							Paragraph pTotalPrice = new Paragraph();
+							pTotalPrice.add("£" + String.format("%.2f", finalTotal));
+							pTotalPrice.setFontSize(11);
+							pTotalPrice.setFont(font);
+							pTotalPrice.setMarginLeft(10);
+
+							totalPriceCell.add(pTotalPrice);
+							totalPriceCell.setBorder(Border.NO_BORDER);
+							totalPriceCell.setBorderLeft(new SolidBorder(0.5f));
+
+							table.addCell(totalPriceCell);
+
+							// -- Final Table Setup -- //
+
+							table.setHorizontalAlignment(HorizontalAlignment.CENTER);
+
+							document.add(table);
+						}
+
+						/**
+						 * Add the Payment Information
+						 */
+						{
+							Paragraph pPaymentInfoTitle = new Paragraph();
+
+							String paymentInfoTitle = "Payment Terms:";
+
+							pPaymentInfoTitle.add(paymentInfoTitle);
+							pPaymentInfoTitle.setTextAlignment(TextAlignment.LEFT);
+							pPaymentInfoTitle.setFontSize(10);
+							pPaymentInfoTitle.setFont(font);
+							pPaymentInfoTitle.setMarginBottom(0);
+							pPaymentInfoTitle.setMarginTop(30);
+							pPaymentInfoTitle.setUnderline();
+							pPaymentInfoTitle.setMarginLeft(25);
+
+							document.add(pPaymentInfoTitle);
+
+							Paragraph pPaymentInfo = new Paragraph();
+
+							String paymentInfo = "";
+							paymentInfo += "Payment, if made by bank transfer: \n";
+							paymentInfo += "Payee Name: " + payeeName + "\n";
+							paymentInfo += "Payee Sort Code: " + payeeSortCode + "\n";
+							paymentInfo += "Account: " + payeeBankName + "\n";
+							paymentInfo += "Payee Account Number: " + payeeAccountNumber + "\n";
+
+							String payeeReference = "";
+
+							if (instrument.contains("Violin/Viola")) {
+								payeeReference = "VLNVLA";
+							} else if (instrument.contains("Violin")) {
+								payeeReference = "VLN";
+							} else if (instrument.contains("Viola")) {
+								payeeReference = "VLA";
+							} else {
+								payeeReference = "VLN";
+							}
+
+							paymentInfo += "Payee Reference: " + payeeReference + " " + studentName;
+
+							pPaymentInfo.add(paymentInfo);
+							pPaymentInfo.setTextAlignment(TextAlignment.LEFT);
+							pPaymentInfo.setFontSize(10);
+							pPaymentInfo.setFont(font);
+							pPaymentInfo.setMarginBottom(0);
+							pPaymentInfo.setMarginTop(10);
+							pPaymentInfo.setMarginLeft(25);
+
+							document.add(pPaymentInfo);
+						}
 
 						document.close();
 
@@ -481,6 +842,21 @@ public class MainShell extends Shell {
 					}
 				}
 
+			}
+
+			private void addFillerRows(com.itextpdf.layout.element.Table table) {
+				Cell fillerCellLeft = new Cell();
+				fillerCellLeft.setHeight(50);
+				fillerCellLeft.setBorder(Border.NO_BORDER);
+
+				Cell fillerCellRight = new Cell();
+				fillerCellRight.setHeight(50);
+				fillerCellRight.setBorder(Border.NO_BORDER);
+				fillerCellRight.setBorderLeft(new SolidBorder(0.5f));
+
+				// Filler Row 1
+				table.addCell(fillerCellLeft);
+				table.addCell(fillerCellRight);
 			}
 		});
 		btnGenerate.setText("Generate");
@@ -912,6 +1288,81 @@ public class MainShell extends Shell {
 		gd_textPayeeBankName.widthHint = 300;
 		textPayeeBankName.setLayoutData(gd_textPayeeBankName);
 		formToolkit.adapt(textPayeeBankName, true, true);
+		new Label(configComposite, SWT.NONE);
+
+		// -- Telephone Number -- //
+
+		Label lblTelephoneNumber = new Label(configComposite, SWT.NONE);
+		lblTelephoneNumber.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		formToolkit.adapt(lblTelephoneNumber, true, true);
+		lblTelephoneNumber.setText(TELEPHONE_NUMBER);
+
+		textTelephoneNumber = new Text(configComposite, SWT.BORDER);
+		textTelephoneNumber.setText(telephoneNumber);
+		textTelephoneNumber.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				telephoneNumber = textTelephoneNumber.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textTelephoneNumber = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textTelephoneNumber.widthHint = 300;
+		textTelephoneNumber.setLayoutData(gd_textTelephoneNumber);
+		formToolkit.adapt(textTelephoneNumber, true, true);
+		new Label(configComposite, SWT.NONE);
+
+		// -- Email Address -- //
+
+		Label lblEmailAddress = new Label(configComposite, SWT.NONE);
+		lblEmailAddress.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		formToolkit.adapt(lblEmailAddress, true, true);
+		lblEmailAddress.setText(EMAIL_ADDRESS);
+
+		textEmailAddress = new Text(configComposite, SWT.BORDER);
+		textEmailAddress.setText(emailAddress);
+		textEmailAddress.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				emailAddress = textEmailAddress.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textEmailAddress = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textEmailAddress.widthHint = 300;
+		textEmailAddress.setLayoutData(gd_textEmailAddress);
+		formToolkit.adapt(textEmailAddress, true, true);
+		new Label(configComposite, SWT.NONE);
+
+		// -- Telephone Number -- //
+
+		Label lblWebAddress = new Label(configComposite, SWT.NONE);
+		lblWebAddress.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		formToolkit.adapt(lblWebAddress, true, true);
+		lblWebAddress.setText(WEB_ADDRESS);
+
+		textWebAddress = new Text(configComposite, SWT.BORDER);
+		textWebAddress.setText(webAddress);
+		textWebAddress.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				webAddress = textWebAddress.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textWebAddress = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textWebAddress.widthHint = 300;
+		textWebAddress.setLayoutData(gd_textWebAddress);
+		formToolkit.adapt(textWebAddress, true, true);
 		new Label(configComposite, SWT.NONE);
 
 		// -- Custom Logo -- //
