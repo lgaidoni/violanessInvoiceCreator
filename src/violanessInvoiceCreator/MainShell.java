@@ -43,9 +43,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
-import com.itextpdf.io.font.FontProgram;
-import com.itextpdf.io.font.FontProgramFactory;
-import com.itextpdf.io.font.PdfEncodings;
+import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.Color;
@@ -155,8 +153,6 @@ public class MainShell extends Shell {
 
 	// Hash Map for the Terms
 	private static final HashMap<String, String> TERMS = new HashMap<String, String>();
-
-	private static final String FONT = "src/fonts/aflfont.TTF";
 
 	/**
 	 * Launch the application.
@@ -458,9 +454,7 @@ public class MainShell extends Shell {
 
 					try {
 						PdfWriter pdfWriter = new PdfWriter(path);
-						FontProgram fontProgram = FontProgramFactory.createFont(FONT);
-						PdfFont font = PdfFontFactory.createFont(fontProgram, PdfEncodings.WINANSI,
-								PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
+						PdfFont font = PdfFontFactory.createFont(StandardFonts.COURIER);
 
 						PdfDocument pdfDocument = new PdfDocument(pdfWriter);
 						pdfDocument.addNewPage();
@@ -470,14 +464,8 @@ public class MainShell extends Shell {
 						/**
 						 * Add the Image to the PDF
 						 */
-						{
-							String imageFile = "";
-
-							if (customLogo.endsWith(".jpg")) {
-								imageFile = customLogo;
-							} else {
-								imageFile = "src/images/PrivatePupilsLogo.jpg";
-							}
+						if (customLogo.endsWith(".jpg") || customLogo.endsWith(".png")) {
+							String imageFile = customLogo;
 
 							ImageData imageData = ImageDataFactory.create(imageFile);
 
@@ -485,7 +473,7 @@ public class MainShell extends Shell {
 
 							image.setHorizontalAlignment(HorizontalAlignment.CENTER);
 							image.setTextAlignment(TextAlignment.CENTER);
-							image.setWidth(120);
+							image.setHeight(80);
 
 							document.add(image);
 						}
