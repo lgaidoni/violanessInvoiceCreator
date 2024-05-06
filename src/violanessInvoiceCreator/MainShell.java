@@ -42,9 +42,21 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import com.itextpdf.io.font.FontProgram;
+import com.itextpdf.io.font.FontProgramFactory;
+import com.itextpdf.io.font.PdfEncodings;
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.colors.Color;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.itextpdf.layout.properties.TextAlignment;
 
 public class MainShell extends Shell {
 
@@ -95,8 +107,6 @@ public class MainShell extends Shell {
 	private static final String VLN_VLA_GUI_TEXT = "Violin/Viola";
 	private static final String VLN_VLA_HIRED_GUI_TEXT = "Violin/Viola (Hired)";
 
-	private static final HashMap<String, String> INSTRUMENTS = new HashMap<String, String>();
-
 	// PDF Instrument Constants
 	private static final String VLN_PDF_TEXT = "Violin";
 	private static final String VLN_HIRED_PDF_TEXT = "Violin (Hired)";
@@ -104,6 +114,36 @@ public class MainShell extends Shell {
 	private static final String VLA_HIRED_PDF_TEXT = "Viola (Hired)";
 	private static final String VLN_VLA_PDF_TEXT = "Violin/Viola";
 	private static final String VLN_VLA_HIRED_PDF_TEXT = "Violin/Viola (Hired)";
+
+	// Hash Map for the Instruments
+	private static final HashMap<String, String> INSTRUMENTS = new HashMap<String, String>();
+
+	// GUI Term Constants
+	private static final String SPRING_GUI = "Spring";
+	private static final String SPRING_GUI_1 = "Spring (1st)";
+	private static final String SPRING_GUI_2 = "Spring (2nd)";
+	private static final String SUMMER_GUI = "Summer";
+	private static final String SUMMER_GUI_1 = "Summer (1st)";
+	private static final String SUMMER_GUI_2 = "Summer (2nd)";
+	private static final String AUTUMN_GUI = "Autumn";
+	private static final String AUTUMN_GUI_1 = "Autumn (1st)";
+	private static final String AUTUMN_GUI_2 = "Autumn (2nd)";
+
+	// PDF Term Constants
+	private static final String SPRING_PDF = "Spring";
+	private static final String SPRING_PDF_1 = "Spring (1st)";
+	private static final String SPRING_PDF_2 = "Spring (2nd)";
+	private static final String SUMMER_PDF = "Summer";
+	private static final String SUMMER_PDF_1 = "Summer (1st)";
+	private static final String SUMMER_PDF_2 = "Summer (2nd)";
+	private static final String AUTUMN_PDF = "Autumn";
+	private static final String AUTUMN_PDF_1 = "Autumn (1st)";
+	private static final String AUTUMN_PDF_2 = "Autumn (2nd)";
+
+	// Hash Map for the Terms
+	private static final HashMap<String, String> TERMS = new HashMap<String, String>();
+
+	private static final String FONT = "src/fonts/aflfont.TTF";
 
 	/**
 	 * Launch the application.
@@ -142,6 +182,16 @@ public class MainShell extends Shell {
 		INSTRUMENTS.put(VLA_HIRED_GUI_TEXT, VLA_HIRED_PDF_TEXT);
 		INSTRUMENTS.put(VLN_VLA_GUI_TEXT, VLN_VLA_PDF_TEXT);
 		INSTRUMENTS.put(VLN_VLA_HIRED_GUI_TEXT, VLN_VLA_HIRED_PDF_TEXT);
+
+		TERMS.put(SPRING_GUI, SPRING_PDF);
+		TERMS.put(SPRING_GUI_1, SPRING_PDF_1);
+		TERMS.put(SPRING_GUI_2, SPRING_PDF_2);
+		TERMS.put(SUMMER_GUI, SUMMER_PDF);
+		TERMS.put(SUMMER_GUI_1, SUMMER_PDF_1);
+		TERMS.put(SUMMER_GUI_2, SUMMER_PDF_2);
+		TERMS.put(AUTUMN_GUI, AUTUMN_PDF);
+		TERMS.put(AUTUMN_GUI_1, AUTUMN_PDF_1);
+		TERMS.put(AUTUMN_GUI_2, AUTUMN_PDF_2);
 
 		TabFolder tabFolder = new TabFolder(this, SWT.NONE);
 
@@ -231,6 +281,9 @@ public class MainShell extends Shell {
 	}
 
 	private void createStudentsTabButtons(Composite studentsComposite, TableCursor tableCursor) {
+
+		// -- Save Button -- //
+
 		Button btnSave = new Button(studentsComposite, SWT.NONE);
 		btnSave.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -276,6 +329,8 @@ public class MainShell extends Shell {
 		});
 		btnSave.setText("Save");
 
+		// -- Load Button -- //
+
 		Button btnLoad = new Button(studentsComposite, SWT.NONE);
 		btnLoad.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -317,6 +372,8 @@ public class MainShell extends Shell {
 		});
 		btnLoad.setText("Load");
 
+		// -- Generate Button -- //
+
 		Button btnGenerate = new Button(studentsComposite, SWT.NONE);
 		btnGenerate.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false, 1, 1));
 		btnGenerate.addSelectionListener(new SelectionAdapter() {
@@ -340,15 +397,58 @@ public class MainShell extends Shell {
 					String extraTwo = student.getText(8);
 					String extraTwoPrice = student.getText(9);
 
-					String path = studentName + ".pdf";
+					String path = invoiceOutputFolder + "/" + studentName + ".pdf";
+
+					float[] blueColourValues = { (float) 0.7, (float) 0.43, (float) 0.0, (float) 0.44 };
+					Color blueColour = Color.createColorWithColorSpace(blueColourValues);
 
 					try {
 						PdfWriter pdfWriter = new PdfWriter(path);
+						FontProgram fontProgram = FontProgramFactory.createFont(FONT);
+						PdfFont font = PdfFontFactory.createFont(fontProgram, PdfEncodings.WINANSI,
+								PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
 
 						PdfDocument pdfDocument = new PdfDocument(pdfWriter);
 						pdfDocument.addNewPage();
 
 						Document document = new Document(pdfDocument);
+
+						/**
+						 * Add the Image to the PDF
+						 */
+						{
+							String imageFile = "";
+
+							if (customLogo.endsWith(".jpg")) {
+								imageFile = customLogo;
+							} else {
+								imageFile = "src/images/PrivatePupilsLogo.jpg";
+							}
+
+							ImageData imageData = ImageDataFactory.create(imageFile);
+
+							Image image = new Image(imageData);
+
+							image.setHorizontalAlignment(HorizontalAlignment.CENTER);
+							image.setTextAlignment(TextAlignment.CENTER);
+							image.setWidth(100);
+
+							document.add(image);
+						}
+
+						/**
+						 * Add the Title
+						 */
+						{
+							Paragraph titleName = new Paragraph();
+							titleName.add(payeeName);
+							titleName.setTextAlignment(TextAlignment.CENTER);
+							titleName.setFontSize(12);
+							titleName.setFont(font);
+							titleName.setFontColor(blueColour);
+
+							document.add(titleName);
+						}
 
 						// Creating a table
 						com.itextpdf.layout.element.Table table = new com.itextpdf.layout.element.Table(3);
@@ -376,12 +476,16 @@ public class MainShell extends Shell {
 
 					} catch (FileNotFoundException e1) {
 						e1.printStackTrace();
+					} catch (IOException e1) {
+						e1.printStackTrace();
 					}
 				}
 
 			}
 		});
 		btnGenerate.setText("Generate");
+
+		// -- Add Button -- //
 
 		Button btnAdd = new Button(studentsComposite, SWT.NONE);
 		btnAdd.addSelectionListener(new SelectionAdapter() {
@@ -402,6 +506,8 @@ public class MainShell extends Shell {
 		});
 		btnAdd.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnAdd.setText("Add Student");
+
+		// -- Remove Button -- //
 
 		Button btnRemove = new Button(studentsComposite, SWT.NONE);
 		btnRemove.addSelectionListener(new SelectionAdapter() {
@@ -478,15 +584,15 @@ public class MainShell extends Shell {
 				// Term Editor
 				case 2:
 					final Combo termCombo = new Combo(tableCursor, SWT.NONE);
-					termCombo.add("Spring");
-					termCombo.add("Spring (1st)");
-					termCombo.add("Spring (2nd)");
-					termCombo.add("Summer");
-					termCombo.add("Summer (1st)");
-					termCombo.add("Summer (2nd)");
-					termCombo.add("Autumn");
-					termCombo.add("Autumn (1st)");
-					termCombo.add("Autumn (2nd)");
+					termCombo.add(SPRING_GUI);
+					termCombo.add(SPRING_GUI_1);
+					termCombo.add(SPRING_GUI_2);
+					termCombo.add(SUMMER_GUI);
+					termCombo.add(SUMMER_GUI_1);
+					termCombo.add(SUMMER_GUI_2);
+					termCombo.add(AUTUMN_GUI);
+					termCombo.add(AUTUMN_GUI_1);
+					termCombo.add(AUTUMN_GUI_2);
 
 					termCombo.addModifyListener(new ModifyListener() {
 
@@ -701,7 +807,7 @@ public class MainShell extends Shell {
 		new Label(configComposite, SWT.NONE);
 		new Label(configComposite, SWT.NONE);
 		new Label(configComposite, SWT.NONE);
-		
+
 		// --- Payee Name --- //
 
 		Label lblPayeeName = new Label(configComposite, SWT.NONE);
@@ -728,7 +834,7 @@ public class MainShell extends Shell {
 		textPayeeName.setLayoutData(gd_textPayeeName);
 		formToolkit.adapt(textPayeeName, true, true);
 		new Label(configComposite, SWT.NONE);
-		
+
 		// -- Payee Sort Code --- //
 
 		Label lblPayeeSortCode = new Label(configComposite, SWT.NONE);
@@ -755,7 +861,7 @@ public class MainShell extends Shell {
 		textPayeeSortCode.setLayoutData(gd_textPayeeSortCode);
 		formToolkit.adapt(textPayeeSortCode, true, true);
 		new Label(configComposite, SWT.NONE);
-		
+
 		// -- Payee Account Number -- //
 
 		Label lblPayeeAccountNumber = new Label(configComposite, SWT.NONE);
@@ -782,7 +888,7 @@ public class MainShell extends Shell {
 		textPayeeAccountNumber.setLayoutData(gd_textPayeeAccountNumber);
 		formToolkit.adapt(textPayeeAccountNumber, true, true);
 		new Label(configComposite, SWT.NONE);
-		
+
 		// -- Payee Bank Name -- //
 
 		Label lblPayeeBankName = new Label(configComposite, SWT.NONE);
@@ -807,7 +913,7 @@ public class MainShell extends Shell {
 		textPayeeBankName.setLayoutData(gd_textPayeeBankName);
 		formToolkit.adapt(textPayeeBankName, true, true);
 		new Label(configComposite, SWT.NONE);
-		
+
 		// -- Custom Logo -- //
 
 		Label lblCustomLogo = new Label(configComposite, SWT.NONE);
@@ -849,7 +955,7 @@ public class MainShell extends Shell {
 		});
 		formToolkit.adapt(btnChooseCustomLogo, true, true);
 		btnChooseCustomLogo.setText("Choose File");
-		
+
 		// -- Invoice Output Folder -- //
 
 		Label lblInvoiceOutputFolder = new Label(configComposite, SWT.NONE);
