@@ -415,8 +415,16 @@ public class MainShell extends Shell {
 				for (TableItem student : table.getItems()) {
 
 					String studentName = student.getText(0);
+					if (studentName == DEFAULT_NAME)
+						continue;
+
 					String instrument = student.getText(1);
+					if (instrument == DEFAULT_TEXT)
+						continue;
+
 					String term = student.getText(2);
+					if (term == DEFAULT_TEXT)
+						continue;
 
 					String numberOfLessons = student.getText(3);
 					int numberOfLessonsInt = Integer.valueOf(numberOfLessons);
@@ -425,6 +433,8 @@ public class MainShell extends Shell {
 					double rateDouble = Double.valueOf(rate.replace("£", ""));
 
 					String dateText = student.getText(5);
+					if (dateText == DEFAULT_DATE)
+						continue;
 					String dateArray[] = dateText.split("/");
 
 					LocalDate date = LocalDate.of(Integer.valueOf(dateArray[2]), Integer.valueOf(dateArray[1]) - 1,
@@ -675,73 +685,79 @@ public class MainShell extends Shell {
 
 							table.addCell(rateCell);
 
-							// -- Extra One Info Cell -- //
-							Cell extraOneCell = new Cell();
+							if (extraOne != DEFAULT_TEXT) {
 
-							Paragraph pExtraOne = new Paragraph();
-							pExtraOne.add(extraOne);
-							pExtraOne.setFontSize(11);
-							pExtraOne.setFont(font);
-							pExtraOne.setMarginRight(10);
-							pExtraOne.setTextAlignment(TextAlignment.RIGHT);
+								// -- Extra One Info Cell -- //
 
-							extraOneCell.add(pExtraOne);
-							extraOneCell.setBorder(Border.NO_BORDER);
+								Cell extraOneCell = new Cell();
 
-							table.addCell(extraOneCell);
+								Paragraph pExtraOne = new Paragraph();
+								pExtraOne.add(extraOne);
+								pExtraOne.setFontSize(11);
+								pExtraOne.setFont(font);
+								pExtraOne.setMarginRight(10);
+								pExtraOne.setTextAlignment(TextAlignment.RIGHT);
 
-							// -- Extra One Price Cell -- //
-							Cell extraOnePriceCell = new Cell();
+								extraOneCell.add(pExtraOne);
+								extraOneCell.setBorder(Border.NO_BORDER);
 
-							Paragraph pExtraOnePrice = new Paragraph();
-							pExtraOnePrice.add(extraOnePrice);
-							pExtraOnePrice.setFontSize(11);
-							pExtraOnePrice.setFont(font);
-							pExtraOnePrice.setMarginLeft(10);
+								table.addCell(extraOneCell);
 
-							extraOnePriceCell.add(pExtraOnePrice);
-							extraOnePriceCell.setBorder(Border.NO_BORDER);
-							extraOnePriceCell.setBorderLeft(new SolidBorder(0.5f));
+								// -- Extra One Price Cell -- //
+								Cell extraOnePriceCell = new Cell();
 
-							table.addCell(extraOnePriceCell);
+								Paragraph pExtraOnePrice = new Paragraph();
+								pExtraOnePrice.add(extraOnePrice);
+								pExtraOnePrice.setFontSize(11);
+								pExtraOnePrice.setFont(font);
+								pExtraOnePrice.setMarginLeft(10);
 
-							// -- Extra Two Info Cell -- //
-							Cell extraTwoCell = new Cell();
+								extraOnePriceCell.add(pExtraOnePrice);
+								extraOnePriceCell.setBorder(Border.NO_BORDER);
+								extraOnePriceCell.setBorderLeft(new SolidBorder(0.5f));
 
-							Paragraph pExtraTwo = new Paragraph();
-							pExtraTwo.add(extraTwo);
-							pExtraTwo.setFontSize(11);
-							pExtraTwo.setFont(font);
-							pExtraTwo.setMarginRight(10);
-							pExtraTwo.setTextAlignment(TextAlignment.RIGHT);
+								table.addCell(extraOnePriceCell);
+							}
 
-							extraTwoCell.add(pExtraTwo);
-							extraTwoCell.setBorder(Border.NO_BORDER);
+							if (extraTwo != DEFAULT_TEXT) {
 
-							table.addCell(extraTwoCell);
+								// -- Extra Two Info Cell -- //
 
-							// -- Extra Two Price Cell -- //
-							Cell extraTwoPriceCell = new Cell();
+								Cell extraTwoCell = new Cell();
 
-							Paragraph pExtraTwoPrice = new Paragraph();
-							pExtraTwoPrice.add(extraTwoPrice);
-							pExtraTwoPrice.setFontSize(11);
-							pExtraTwoPrice.setFont(font);
-							pExtraTwoPrice.setMarginLeft(10);
+								Paragraph pExtraTwo = new Paragraph();
+								pExtraTwo.add(extraTwo);
+								pExtraTwo.setFontSize(11);
+								pExtraTwo.setFont(font);
+								pExtraTwo.setMarginRight(10);
+								pExtraTwo.setTextAlignment(TextAlignment.RIGHT);
 
-							extraTwoPriceCell.add(pExtraTwoPrice);
-							extraTwoPriceCell.setBorder(Border.NO_BORDER);
-							extraTwoPriceCell.setBorderLeft(new SolidBorder(0.5f));
+								extraTwoCell.add(pExtraTwo);
+								extraTwoCell.setBorder(Border.NO_BORDER);
 
-							table.addCell(extraTwoPriceCell);
+								table.addCell(extraTwoCell);
+
+								// -- Extra Two Price Cell -- //
+								Cell extraTwoPriceCell = new Cell();
+
+								Paragraph pExtraTwoPrice = new Paragraph();
+								pExtraTwoPrice.add(extraTwoPrice);
+								pExtraTwoPrice.setFontSize(11);
+								pExtraTwoPrice.setFont(font);
+								pExtraTwoPrice.setMarginLeft(10);
+
+								extraTwoPriceCell.add(pExtraTwoPrice);
+								extraTwoPriceCell.setBorder(Border.NO_BORDER);
+								extraTwoPriceCell.setBorderLeft(new SolidBorder(0.5f));
+
+								table.addCell(extraTwoPriceCell);
+							}
 
 							// -- Filler Cells -- //
 
 							addFillerRows(table);
 
 							// -- Total Cells -- //
-
-							// -- Extra Two Info Cell -- //
 							Cell totalCell = new Cell();
 
 							Paragraph ptotal = new Paragraph();
@@ -756,7 +772,6 @@ public class MainShell extends Shell {
 
 							table.addCell(totalCell);
 
-							// -- Extra Two Price Cell -- //
 							Cell totalPriceCell = new Cell();
 
 							double finalTotal = finalRate + extraOnePriceDouble + extraTwoPriceDouble;
