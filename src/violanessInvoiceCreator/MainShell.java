@@ -49,6 +49,7 @@ import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -410,17 +411,36 @@ public class MainShell extends Shell {
 
 				for (TableItem student : table.getItems()) {
 
-					String studentName = student.getText(0);
-					if (studentName == DEFAULT_NAME)
+					org.eclipse.swt.graphics.Color swtRed = new org.eclipse.swt.graphics.Color(138, 0, 0);
+					org.eclipse.swt.graphics.Color swtAmber = new org.eclipse.swt.graphics.Color(212, 89, 13);
+					org.eclipse.swt.graphics.Color swtGreen = new org.eclipse.swt.graphics.Color(23, 138, 0);
+
+					if (student.getData() != null && (Boolean) student.getData() == true) {
 						continue;
+					}
+
+					student.setForeground(swtAmber);
+
+					String studentName = student.getText(0);
+					if (studentName.contains(DEFAULT_NAME)) {
+						student.setForeground(swtRed);
+						student.setData(false);
+						continue;
+					}
 
 					String instrument = student.getText(1);
-					if (instrument == DEFAULT_TEXT)
+					if (instrument.contains(DEFAULT_TEXT)) {
+						student.setForeground(swtRed);
+						student.setData(false);
 						continue;
+					}
 
 					String term = student.getText(2);
-					if (term == DEFAULT_TEXT)
+					if (term.contains(DEFAULT_TEXT)) {
+						student.setForeground(swtRed);
+						student.setData(false);
 						continue;
+					}
 
 					String numberOfLessons = student.getText(3);
 					int numberOfLessonsInt = Integer.valueOf(numberOfLessons);
@@ -429,10 +449,13 @@ public class MainShell extends Shell {
 					double rateDouble = Double.valueOf(rate.replace("£", ""));
 
 					String dateText = student.getText(5);
-					if (dateText == DEFAULT_DATE)
+					if (dateText.contains(DEFAULT_DATE)) {
+						student.setForeground(swtRed);
+						student.setData(false);
 						continue;
-					String dateArray[] = dateText.split("/");
+					}
 
+					String dateArray[] = dateText.split("/");
 					LocalDate date = LocalDate.of(Integer.valueOf(dateArray[2]), Integer.valueOf(dateArray[1]) - 1,
 							Integer.valueOf(dateArray[0]));
 
@@ -446,8 +469,10 @@ public class MainShell extends Shell {
 
 					int invoiceNumber = (int) (Math.random() * 10000000);
 
-					String path = invoiceOutputFolder + "/" + date.getYear() + " - " + studentName + " - "
-							+ invoiceNumber + ".pdf";
+					String fileNameTerm = term.replace("(1st)", "1").replace("(2nd)", "2");
+
+					String path = invoiceOutputFolder + "/" + date.getYear() + " - " + fileNameTerm + " - "
+							+ studentName + " - " + invoiceNumber + ".pdf";
 
 					float[] blueColourValues = { (float) 0.7, (float) 0.43, (float) 0.0, (float) 0.44 };
 					Color blueColour = Color.createColorWithColorSpace(blueColourValues);
@@ -458,6 +483,7 @@ public class MainShell extends Shell {
 
 						PdfDocument pdfDocument = new PdfDocument(pdfWriter);
 						pdfDocument.addNewPage();
+						pdfDocument.setDefaultPageSize(PageSize.A4);
 
 						Document document = new Document(pdfDocument);
 
@@ -474,6 +500,7 @@ public class MainShell extends Shell {
 							image.setHorizontalAlignment(HorizontalAlignment.CENTER);
 							image.setTextAlignment(TextAlignment.CENTER);
 							image.setHeight(80);
+							image.setMarginTop(50);
 
 							document.add(image);
 						}
@@ -673,7 +700,7 @@ public class MainShell extends Shell {
 
 							table.addCell(rateCell);
 
-							if (extraOne != DEFAULT_TEXT) {
+							if (!extraOne.contains(DEFAULT_TEXT)) {
 
 								// -- Extra One Info Cell -- //
 
@@ -707,7 +734,7 @@ public class MainShell extends Shell {
 								table.addCell(extraOnePriceCell);
 							}
 
-							if (extraTwo != DEFAULT_TEXT) {
+							if (!extraTwo.contains(DEFAULT_TEXT)) {
 
 								// -- Extra Two Info Cell -- //
 
@@ -838,6 +865,9 @@ public class MainShell extends Shell {
 
 						document.close();
 
+						student.setForeground(swtGreen);
+						student.setData(true);
+
 					} catch (FileNotFoundException e1) {
 						e1.printStackTrace();
 					} catch (IOException e1) {
@@ -949,6 +979,7 @@ public class MainShell extends Shell {
 						public void modifyText(ModifyEvent arg0) {
 							int currentColumn = tableCursor.getColumn();
 							for (TableItem row : table.getSelection()) {
+								row.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 								row.setText(currentColumn, instrumentCombo.getText());
 							}
 
@@ -979,6 +1010,7 @@ public class MainShell extends Shell {
 						public void modifyText(ModifyEvent arg0) {
 							int currentColumn = tableCursor.getColumn();
 							for (TableItem row : table.getSelection()) {
+								row.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 								row.setText(currentColumn, termCombo.getText());
 							}
 						}
@@ -1029,6 +1061,7 @@ public class MainShell extends Shell {
 								}
 
 								for (TableItem row : table.getSelection()) {
+									row.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 									row.setText(currentColumn, lessonsText.getText());
 								}
 								lessonsText.dispose();
@@ -1066,6 +1099,7 @@ public class MainShell extends Shell {
 							if (e.character == SWT.CR) {
 								int currentColumn = tableCursor.getColumn();
 								for (TableItem row : table.getSelection()) {
+									row.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 									row.setText(currentColumn, simpleText.getText());
 								}
 								simpleText.dispose();
@@ -1121,6 +1155,7 @@ public class MainShell extends Shell {
 									moneyText.setText(DEFAULT_LESSONS + moneyText.getText());
 								}
 								for (TableItem row : table.getSelection()) {
+									row.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 									row.setText(currentColumn, "£" + moneyText.getText());
 								}
 								moneyText.dispose();
@@ -1153,6 +1188,7 @@ public class MainShell extends Shell {
 									String dateString = dateTime.getDay() + "/" + (dateTime.getMonth() + 1) + "/"
 											+ dateTime.getYear();
 
+									row.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 									row.setText(currentColumn, dateString);
 								}
 								dateTime.dispose();
