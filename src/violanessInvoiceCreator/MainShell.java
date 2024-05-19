@@ -733,7 +733,12 @@ public class MainShell extends Shell {
 								Cell hiredInstrumentPriceCell = new Cell();
 								
 
-								final double instrumentHireRateDouble = Double.valueOf(instrumentHireRate.replace(" ", ""));
+								double instrumentHireRateDouble = Double.valueOf(instrumentHireRate.replace(" ", ""));
+								
+								if (!(term.contains("1st") || term.contains("2nd"))) {
+									instrumentHireRateDouble *= 2; 
+								}
+										
 								finalTotal += instrumentHireRateDouble;
 
 								Paragraph pHiredInstrumentPrice = new Paragraph();
