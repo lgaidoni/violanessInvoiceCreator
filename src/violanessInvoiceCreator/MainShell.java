@@ -79,6 +79,7 @@ public class MainShell extends Shell {
 	private Text textTelephoneNumber;
 	private Text textEmailAddress;
 	private Text textWebAddress;
+	private Text textInstrumentHireRate;
 
 	private String invoiceOutputFolder;
 	private String payeeName;
@@ -89,6 +90,7 @@ public class MainShell extends Shell {
 	private String telephoneNumber;
 	private String emailAddress;
 	private String webAddress;
+	private String instrumentHireRate;
 
 	// Data Defaults
 	private static final String DEFAULT_LESSONS = "0";
@@ -107,6 +109,7 @@ public class MainShell extends Shell {
 	private final static String TELEPHONE_NUMBER = "Telephone Number";
 	private final static String EMAIL_ADDRESS = "Email Address";
 	private final static String WEB_ADDRESS = "Website Address";
+	private final static String INSTRUMENT_HIRE_RATE = "Instrument Hire Rate (£)";
 
 	// Delimiter
 	private final static String COMMA_DELIMITER = ",";
@@ -214,6 +217,7 @@ public class MainShell extends Shell {
 		telephoneNumber = " ";
 		emailAddress = " ";
 		webAddress = " ";
+		instrumentHireRate = " ";
 
 		try {
 			File settingsFile = new File("settings.config");
@@ -255,6 +259,9 @@ public class MainShell extends Shell {
 							case WEB_ADDRESS:
 								webAddress = values[1];
 								break;
+							case INSTRUMENT_HIRE_RATE:
+								instrumentHireRate = values[1];
+								break;
 							}
 						}
 					}
@@ -282,6 +289,7 @@ public class MainShell extends Shell {
 		fileWriter.write(TELEPHONE_NUMBER + "," + telephoneNumber + "\n");
 		fileWriter.write(EMAIL_ADDRESS + "," + emailAddress + "\n");
 		fileWriter.write(WEB_ADDRESS + "," + webAddress + "\n");
+		fileWriter.write(INSTRUMENT_HIRE_RATE + "," + instrumentHireRate + "\n");
 		fileWriter.close();
 	}
 
@@ -443,10 +451,10 @@ public class MainShell extends Shell {
 					}
 
 					String numberOfLessons = student.getText(3);
-					int numberOfLessonsInt = Integer.valueOf(numberOfLessons);
+					final int numberOfLessonsInt = Integer.valueOf(numberOfLessons);
 
 					String rate = student.getText(4);
-					double rateDouble = Double.valueOf(rate.replace("£", ""));
+					final double rateDouble = Double.valueOf(rate.replace("£", ""));
 
 					String dateText = student.getText(5);
 					if (dateText.contains(DEFAULT_DATE)) {
@@ -461,11 +469,11 @@ public class MainShell extends Shell {
 
 					String extraOne = student.getText(6);
 					String extraOnePrice = student.getText(7);
-					double extraOnePriceDouble = Double.valueOf(extraOnePrice.replace("£", ""));
+					final double extraOnePriceDouble = Double.valueOf(extraOnePrice.replace("£", ""));
 
 					String extraTwo = student.getText(8);
 					String extraTwoPrice = student.getText(9);
-					double extraTwoPriceDouble = Double.valueOf(extraTwoPrice.replace("£", ""));
+					final double extraTwoPriceDouble = Double.valueOf(extraTwoPrice.replace("£", ""));
 
 					int invoiceNumber = (int) (Math.random() * 10000000);
 
@@ -476,6 +484,8 @@ public class MainShell extends Shell {
 
 					float[] blueColourValues = { (float) 0.7, (float) 0.43, (float) 0.0, (float) 0.44 };
 					Color blueColour = Color.createColorWithColorSpace(blueColourValues);
+					
+					double finalTotal = 0;
 
 					try {
 						PdfWriter pdfWriter = new PdfWriter(path);
@@ -687,6 +697,7 @@ public class MainShell extends Shell {
 							Cell rateCell = new Cell();
 
 							double finalRate = rateDouble * numberOfLessonsInt;
+							finalTotal += finalRate;
 
 							Paragraph pRate = new Paragraph();
 							pRate.add("£" + String.format("%.2f", finalRate));
@@ -699,6 +710,44 @@ public class MainShell extends Shell {
 							rateCell.setBorderLeft(new SolidBorder(0.5f));
 
 							table.addCell(rateCell);
+
+							if (instrument.contains("Hired")) {
+
+								// -- Hired Instrument Info Cell -- //
+
+								Cell hiredInstrumentInfoCell = new Cell();
+
+								Paragraph pHiredInstrument = new Paragraph();
+								pHiredInstrument.add("Hired" + tableInstrument);
+								pHiredInstrument.setFontSize(11);
+								pHiredInstrument.setFont(font);
+								pHiredInstrument.setMarginRight(10);
+								pHiredInstrument.setTextAlignment(TextAlignment.RIGHT);
+
+								hiredInstrumentInfoCell.add(pHiredInstrument);
+								hiredInstrumentInfoCell.setBorder(Border.NO_BORDER);
+
+								table.addCell(hiredInstrumentInfoCell);
+
+								// -- Hired Instrument Price Cell -- //
+								Cell hiredInstrumentPriceCell = new Cell();
+								
+
+								final double instrumentHireRateDouble = Double.valueOf(instrumentHireRate.replace(" ", ""));
+								finalTotal += instrumentHireRateDouble;
+
+								Paragraph pHiredInstrumentPrice = new Paragraph();
+								pHiredInstrumentPrice.add("£" + String.format("%.2f", instrumentHireRateDouble));
+								pHiredInstrumentPrice.setFontSize(11);
+								pHiredInstrumentPrice.setFont(font);
+								pHiredInstrumentPrice.setMarginLeft(10);
+
+								hiredInstrumentPriceCell.add(pHiredInstrumentPrice);
+								hiredInstrumentPriceCell.setBorder(Border.NO_BORDER);
+								hiredInstrumentPriceCell.setBorderLeft(new SolidBorder(0.5f));
+
+								table.addCell(hiredInstrumentPriceCell);
+							}
 
 							if (!extraOne.contains(DEFAULT_TEXT)) {
 
@@ -732,6 +781,8 @@ public class MainShell extends Shell {
 								extraOnePriceCell.setBorderLeft(new SolidBorder(0.5f));
 
 								table.addCell(extraOnePriceCell);
+							
+								finalTotal += extraOnePriceDouble;
 							}
 
 							if (!extraTwo.contains(DEFAULT_TEXT)) {
@@ -766,6 +817,8 @@ public class MainShell extends Shell {
 								extraTwoPriceCell.setBorderLeft(new SolidBorder(0.5f));
 
 								table.addCell(extraTwoPriceCell);
+								
+								finalTotal += extraTwoPriceDouble;
 							}
 
 							// -- Filler Cells -- //
@@ -788,8 +841,6 @@ public class MainShell extends Shell {
 							table.addCell(totalCell);
 
 							Cell totalPriceCell = new Cell();
-
-							double finalTotal = finalRate + extraOnePriceDouble + extraTwoPriceDouble;
 
 							Paragraph pTotalPrice = new Paragraph();
 							pTotalPrice.add("£" + String.format("%.2f", finalTotal));
@@ -1379,7 +1430,7 @@ public class MainShell extends Shell {
 		formToolkit.adapt(textEmailAddress, true, true);
 		new Label(configComposite, SWT.NONE);
 
-		// -- Telephone Number -- //
+		// -- Web Address -- //
 
 		Label lblWebAddress = new Label(configComposite, SWT.NONE);
 		lblWebAddress.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -1402,6 +1453,47 @@ public class MainShell extends Shell {
 		gd_textWebAddress.widthHint = 300;
 		textWebAddress.setLayoutData(gd_textWebAddress);
 		formToolkit.adapt(textWebAddress, true, true);
+		new Label(configComposite, SWT.NONE);
+
+		// -- Instrument Hire Rate -- //
+
+		Label lblInstrumentHireRate = new Label(configComposite, SWT.NONE);
+		lblInstrumentHireRate.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		formToolkit.adapt(lblInstrumentHireRate, true, true);
+		lblInstrumentHireRate.setText(INSTRUMENT_HIRE_RATE);
+
+		textInstrumentHireRate = new Text(configComposite, SWT.BORDER);
+		textInstrumentHireRate.setText(instrumentHireRate);
+
+		// The verify listener to enforce price format
+		textInstrumentHireRate.addVerifyListener(new VerifyListener() {
+
+			@Override
+			public void verifyText(VerifyEvent arg0) {
+				String textToVerify = textInstrumentHireRate.getText().substring(0, arg0.start) + arg0.text
+						+ textInstrumentHireRate.getText().substring(arg0.end);
+
+				if (textToVerify.matches("^(\\d{1,}|(\\d{1,})?(\\.(\\d{0,2}))?)$")) {
+					arg0.doit = true;
+				} else
+					arg0.doit = false;
+			}
+		});
+
+		textInstrumentHireRate.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				instrumentHireRate = textInstrumentHireRate.getText();
+				try {
+					writeSettingsToFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		GridData gd_textInstrumentHireRate = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_textInstrumentHireRate.widthHint = 300;
+		textInstrumentHireRate.setLayoutData(gd_textInstrumentHireRate);
+		formToolkit.adapt(textInstrumentHireRate, true, true);
 		new Label(configComposite, SWT.NONE);
 
 		// -- Custom Logo -- //
